@@ -12,6 +12,7 @@
 #endif
 #include <string>
 #include <iostream>
+#include "socket.h"
 #pragma comment(lib,"ws2_32.lib")
 
 namespace aricanli::network {
@@ -28,61 +29,28 @@ namespace aricanli::network {
 		std::string m_message{ "Invalid Server Query" };
 	};
 
-	class Client
+	class Client : public Socket
 	{
 	public:
-		enum class TypeSocket : u_long { BlockingSocket = 0, NonBlockingSocket = 1 };
-		Client(const std::string& host, const std::string& port, TypeSocket socketType = TypeSocket::BlockingSocket);
-		Client(const Client&) = delete;
-		Client(Client&&) = delete;
+		
+		explicit Client(const std::string& host, const std::string& port, TypeSocket socketType = TypeSocket::BlockingSocket) ;
+		explicit Client(const Client&) noexcept = delete;
+		explicit Client(Client&&) noexcept = delete;
 		Client& operator=(const Client&) = delete;
 		Client operator=(Client&&) = delete;
 		~Client();
-		void connect_socket();
-
-		std::string receive_line();
-		std::string receive_bytes();
-		void receive_until() const;
-		void receive();
-		void listen_socket() const ;
-		void send_line(const std::string& send_lines) const;
-
-		void set_blocking_type(const TypeSocket& typeSocket) {
-			this->socketType = typeSocket;
-		}
-		TypeSocket get_blocking_type() const {
-			return socketType;
-		}
-		void set_port(std::string port) {
-			this->port = port;
-		}
-		std::string get_port() const{
-			return port;
-		}		
-		void set_ip(const std::string& port) {
-			this->host = host;
-		}
-		std::string get_ip() const {
-			return host;
-		}
-	protected:
-		void startup();
-		void blocking_mode();
-		//void bind_socket();
+		//void connect_socket();
+		virtual void send_line(const std::string& send_lines) const override;
 
 	private:
-		std::string port;
-		int connections;
-		mutable char buffer[4096];
-		TypeSocket socketType;
-		std::string userInput;
-		std::string host;
 		WSADATA wsaData;
 		sockaddr_in socket_address;
 		addrinfo hints = {} , * addrs;
 		hostent* host_ent;
 		SOCKET m_socket;
 		std::string error;
-		mutable int iResult;
+
+		SOCKET tmp_socket;
+		
 	};
 }

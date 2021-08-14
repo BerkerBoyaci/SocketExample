@@ -4,11 +4,13 @@
 #include <iostream>
 #include <string>
 #include <memory>
+#include "socket.h"
 #ifdef _WIN32
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0501 
 #endif
 #include <winsock2.h>
+#include <WS2tcpip.h>
 #else
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -28,48 +30,30 @@ namespace aricanli::network {
 		virtual const char* what() const noexcept {
 			return m_message.c_str();
 		}
+
 	protected:
 		std::string m_message{ "Invalid Server Query" };
 	};
 
-	class Server 
+	class Server : public Socket
 	{
 	public:
-		enum class TypeSocket : u_long { BlockingSocket = 0, NonBlockingSocket = 1};
-		Server(int port , int connections , TypeSocket socketType = TypeSocket::BlockingSocket);
-		Server(const Server&) = delete;
-		Server(Server&&) = delete;
+		
+		explicit Server(const std::string& port , int connections , TypeSocket socketType = TypeSocket::BlockingSocket) ;
+		explicit Server(const Server&) noexcept= delete;
+		explicit Server(Server&&) noexcept = delete;
 		Server& operator=(const Server&) = delete;
 		Server operator=(Server&&) = delete;
 		~Server();
-		void accept_connections();
-		void send_bytes(const std::string&) const;
+		//void bind_socket();
+		//void accept_connections();
 
-		void set_blocking_type(const TypeSocket& typeSocket) {
-			this->socketType = typeSocket;
-		}
-		TypeSocket get_blocking_type() const{
-			return socketType;
-		}
-		void set_port(int port) {
-			this->port = port;
-		}
-		int get_port() const{
-			return port;
-		}
+		virtual void send_line(const std::string& send_lines) const override;
+		
 	protected:
-		void startup();
-		void bind_socket();
-		void listen_socket() const; 
-		void blocking_mode() const;
 		
 	private:
-		int port;
-		int connections;
-		SOCKET m_socket;
-		WSADATA WsaDat;
-		TypeSocket socketType;
+		SOCKET tmp_socket;
 		sockaddr_in socketAddress;
-		mutable u_long sType;
 	};
 }
