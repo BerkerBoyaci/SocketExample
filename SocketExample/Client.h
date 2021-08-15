@@ -39,18 +39,14 @@ namespace aricanli::network {
 		Client& operator=(const Client&) = delete;
 		Client operator=(Client&&) = delete;
 		~Client();
-		//void connect_socket();
-		virtual void send_line(const std::string& send_lines) const override;
 
+		virtual void send_line(const std::string& send_lines) const override;
+		void connect_socket() ;
 	private:
 		WSADATA wsaData;
 		sockaddr_in socket_address;
 		addrinfo hints = {} , * addrs;
 		hostent* host_ent;
-		SOCKET m_socket;
-		std::string error;
-
-		SOCKET tmp_socket;
-		
+		std::string error;		
 	};
 }

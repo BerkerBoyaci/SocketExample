@@ -45,15 +45,18 @@ namespace aricanli::network {
 		Server& operator=(const Server&) = delete;
 		Server operator=(Server&&) = delete;
 		~Server();
-		//void bind_socket();
-		//void accept_connections();
-
-		virtual void send_line(const std::string& send_lines) const override;
 		
+		void create_server() ;
+		//virtual void send_line(const std::string& send_lines) const override;
+		void receive_until();
+		void send_line(const std::string& send_lines) const;
 	protected:
-		
+		void bind_socket();
+		void accept_connections();
 	private:
-		SOCKET tmp_socket;
+		//SOCKET tmp_socket;
 		sockaddr_in socketAddress;
+
+		char buffer[4096];
 	};
 }

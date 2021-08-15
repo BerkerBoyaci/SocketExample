@@ -44,16 +44,16 @@ namespace aricanli::network {
 		virtual ~Socket();
 		static bool startup();
 		static void end();
-		void receive_until() const;
+		const SOCKET getSocket() const;
+		
+		virtual void send_line(const std::string& send_lines) const;
+		virtual void receive_until();
 		std::string receive_bytes();
-		void bind_socket();
-		void accept_connections();
-		// Socket creation ->
-		void connect_socket();
+
 
 		virtual void blocking_mode();
 		virtual void listen_socket() const;
-		virtual void send_line(const std::string& send_lines) const = 0;
+		//
 
 		virtual void set_blocking_type(const TypeSocket& typeSocket) {
 			this->socketType = typeSocket;
