@@ -1,0 +1,26 @@
+services:
+  server:
+    build:
+      context: .
+      target: server
+    container_name: socketlab-server
+    ports:
+      - "8080:8080"
+    networks:
+      - socketlab-net
+
+  client:
+    build:
+      context: .
+      target: client
+    container_name: socketlab-client
+    networks:
+      - socketlab-net
+    depends_on:
+      - server
+    # Pass a different host via: docker compose run client ./client <host>
+    command: ["./client", "server"]
+
+networks:
+  socketlab-net:
+    driver: bridge
