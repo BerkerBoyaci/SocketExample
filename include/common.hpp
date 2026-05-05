@@ -2,6 +2,7 @@
 
 #include <exception>
 #include <string>
+#include <sys/socket.h>
 
 namespace socketlab::network {
 
@@ -9,6 +10,15 @@ namespace socketlab::network {
         BlockingSocket    = 0,
         NonBlockingSocket = 1
     };
+
+    enum class IpVersion {
+        IPv4 = AF_INET,
+        IPv6 = AF_INET6
+    };
+
+    constexpr int to_af(IpVersion v) noexcept {
+        return static_cast<int>(v);
+    }
 
     class SocketException : public std::exception {
     public:

@@ -1,17 +1,19 @@
 #include "server.hpp"
 #include <cstring>
 #include <fcntl.h>
+#include <netinet/in.h>
 
 namespace socketlab::network {
 
-    Server::Server(int port, int connections, TypeSocket socketType)
+    Server::Server(int port, int connections, TypeSocket socketType, IpVersion ipVersion)
         : port{port}, 
           connections{connections},
           socketType{socketType},
+          ipVersion{ipVersion},
           m_socket{-1},
-           client_socket{-1}
+          client_socket{-1}
     {
-        m_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        m_socket = socket(to_af(ipVersion), SOCK_STREAM, IPPROTO_TCP);
         if (m_socket == -1)
             throw ServerException{"Error: Socket creation failed."};
 
@@ -20,9 +22,17 @@ namespace socketlab::network {
         setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
         memset(&socketAddress, 0, sizeof(socketAddress));
-        socketAddress.sin_family      = AF_INET;
-        socketAddress.sin_addr.s_addr = INADDR_ANY;
-        socketAddress.sin_port        = htons(port);
+        if (ipVersion == IpVersion::IPv6) {
+            auto& addr6       = reinterpret_cast<sockaddr_in6&>(socketAddress);
+            addr6.sin6_family = AF_INET6;
+            addr6.sin6_addr   = in6addr_any;
+            addr6.sin6_port   = htons(port);
+        } else {
+            auto& addr4           = reinterpret_cast<sockaddr_in&>(socketAddress);
+            addr4.sin_family      = AF_INET;
+            addr4.sin_addr.s_addr = INADDR_ANY;
+            addr4.sin_port        = htons(port);
+        }
 
         bind_socket();
     }
@@ -40,7 +50,10 @@ namespace socketlab::network {
 
     void Server::bind_socket() 
     {
-        if (bind(m_socket, reinterpret_cast<sockaddr*>(&socketAddress), sizeof(sockaddr_in)) == -1) 
+        socklen_t addrLen = (ipVersion == IpVersion::IPv6)
+            ? static_cast<socklen_t>(sizeof(sockaddr_in6))
+            : static_cast<socklen_t>(sizeof(sockaddr_in));
+        if (bind(m_socket, reinterpret_cast<sockaddr*>(&socketAddress), addrLen) == -1) 
         {
             ::close(m_socket);
             throw ServerException{"Error: bind() failed."};

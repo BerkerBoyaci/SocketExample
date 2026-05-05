@@ -5,15 +5,15 @@
 namespace socketlab::network
  {
 
-    Client::Client(const std::string& host, const std::string& port, TypeSocket socketType)
-        : host{host}, port{port}, socketType{socketType}, m_socket{-1}
+    Client::Client(const std::string& host, const std::string& port, TypeSocket socketType, IpVersion ipVersion)
+        : host{host}, port{port}, socketType{socketType}, ipVersion{ipVersion}, m_socket{-1}
     {
-        m_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        m_socket = socket(to_af(ipVersion), SOCK_STREAM, IPPROTO_TCP);
         if (m_socket == -1)
             throw ClientException{"Socket creation failed."};
 
         memset(&hints, 0, sizeof(hints));
-        hints.ai_family   = AF_INET;
+        hints.ai_family   = to_af(ipVersion);
         hints.ai_socktype = SOCK_STREAM;
         hints.ai_protocol = IPPROTO_TCP;
     }
