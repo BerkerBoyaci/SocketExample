@@ -1,4 +1,4 @@
-#include "client.h"
+#include "client.hpp"
 #include <cstring>
 #include <fcntl.h>
 
@@ -68,7 +68,7 @@ namespace socketlab::network
         {
             iResult = recv(m_socket, buffer, sizeof(buffer), 0);
             if (iResult > 0)
-                std::cout << "Bytes received: " << iResult << "\n";
+                std::cout << "Bytes received : " << iResult << "\n";
             else if (iResult == 0)
                 std::cout << "Connection closed.\n";
             else

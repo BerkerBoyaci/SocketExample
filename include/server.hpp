@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common.hpp"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -9,25 +10,14 @@
 
 namespace socketlab::network {
 
-    class ServerException : public std::exception {
+    class ServerException : public SocketException {
     public:
-        explicit ServerException(const char* message)        noexcept : m_message(message) {}
-        explicit ServerException(const std::string& message) noexcept : m_message(message) {}
-        virtual ~ServerException() noexcept {}
-        const char* what() const noexcept override { return m_message.c_str(); }
-    protected:
-        std::string m_message{"Invalid Server Operation"};
+        using SocketException::SocketException;
     };
 
     class Server
     {
     public:
-        enum class TypeSocket 
-        {
-            BlockingSocket = 0,
-            NonBlockingSocket = 1 
-        };
-
         Server(int port, int connections, TypeSocket socketType = TypeSocket::BlockingSocket);
         Server(const Server&) = delete;
         Server(Server&&)      = delete;

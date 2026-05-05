@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common.hpp"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -17,12 +18,6 @@ namespace socketlab::network {
         Socket  operator=(Socket&&)      = delete;
         virtual ~Socket();
     protected:
-        enum class TypeSocket 
-        {
-            BlockingSocket,
-            NonBlockingSocket 
-        };
-        
         explicit Socket();
         virtual void close_socket();
     protected:

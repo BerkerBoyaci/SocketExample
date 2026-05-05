@@ -1,10 +1,10 @@
 CXX      := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic -Isrc -static-libstdc++ -static-libgcc
+CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic -Iinclude -static-libstdc++ -static-libgcc
 BUILDDIR := build
 
 COMMON_SRCS := src/socket.cpp src/server.cpp src/client.cpp
-SERVER_SRCS := $(COMMON_SRCS) src/server_main.cpp
-CLIENT_SRCS := $(COMMON_SRCS) src/client_main.cpp
+SERVER_SRCS := $(COMMON_SRCS) example/server_main.cpp
+CLIENT_SRCS := $(COMMON_SRCS) example/client_main.cpp
 
 .PHONY: all server client clean
 

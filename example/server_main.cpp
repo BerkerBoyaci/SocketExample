@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <unistd.h>
-#include "server.h"
+#include "server.hpp"
 
 // -------------------------------------------------------
 // Examples – uncomment the one you want to run in main()
@@ -20,7 +20,7 @@ int main() {
 void blocking_example() {
     try {
         socketlab::network::Server server(8080, 1,
-            socketlab::network::Server::TypeSocket::BlockingSocket);
+            socketlab::network::TypeSocket::BlockingSocket);
         server.accept_connections();
 
         for (;;) {
@@ -41,7 +41,7 @@ void blocking_example() {
 void nonblocking_example() {
     try {
         socketlab::network::Server server(8080, 1,
-            socketlab::network::Server::TypeSocket::NonBlockingSocket);
+            socketlab::network::TypeSocket::NonBlockingSocket);
         server.accept_connections();
 
         for (;;) {

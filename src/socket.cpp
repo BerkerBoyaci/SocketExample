@@ -1,4 +1,4 @@
-#include "socket.h"
+#include "socket.hpp"
 #include <stdexcept>
 
 namespace socketlab::network {

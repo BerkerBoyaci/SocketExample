@@ -2,7 +2,9 @@
 FROM gcc:13-bookworm AS builder
 
 WORKDIR /app
-COPY src/    ./src/
+COPY src/      ./src/
+COPY include/  ./include/
+COPY example/  ./example/
 COPY Makefile .
 RUN make all
 

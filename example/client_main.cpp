@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <unistd.h>
-#include "client.h"
+#include "client.hpp"
 
 // -------------------------------------------------------
 // Usage: ./client [host]
@@ -23,7 +23,7 @@ void blocking_example(const std::string& host) {
     sleep(1);
     try {
         socketlab::network::Client client{host, "8080",
-            socketlab::network::Client::TypeSocket::BlockingSocket};
+            socketlab::network::TypeSocket::BlockingSocket};
         client.connect_socket();
         std::cout << "Connected to " << host << ":8080\n";
         client.receive_until();
@@ -39,7 +39,7 @@ void blocking_example(const std::string& host) {
 void nonblocking_example(const std::string& host) {
     try {
         socketlab::network::Client client{host, "8080",
-            socketlab::network::Client::TypeSocket::NonBlockingSocket};
+            socketlab::network::TypeSocket::NonBlockingSocket};
         client.connect_socket();
         std::cout << "Connected (non-blocking) to " << host << ":8080\n";
         client.receive_until();
