@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <string>
 #include <iostream>
+#include <span>
+#include <cstddef>
 
 namespace socketlab::network
 {
@@ -17,7 +19,7 @@ namespace socketlab::network
         using SocketException::SocketException;
     };
 
-    class Client 
+    class Client : public SocketBase
     {
     public:
         Client(const std::string& host, const std::string& port,
@@ -30,14 +32,10 @@ namespace socketlab::network
         ~Client();
 
         void        connect_socket();
-        void        send_line(const std::string& data) const;
+        void        send_raw(std::span<const std::byte> data) const;
         void        receive_until() const;
         void        receive_echo();
 
-        void        set_blocking_type(const TypeSocket& t) { socketType = t; }
-        TypeSocket  get_blocking_type() const              { return socketType; }
-        void        set_ip_version(IpVersion v)            { ipVersion = v; }
-        IpVersion   get_ip_version() const                 { return ipVersion; }
         void        set_port(const std::string& p)         { port = p; }
         std::string get_port() const                       { return port; }
         void        set_host(const std::string& h)         { host = h; }
@@ -49,8 +47,6 @@ namespace socketlab::network
     private:
         std::string     host;
         std::string     port;
-        TypeSocket      socketType;
-        IpVersion       ipVersion;
         addrinfo        hints{};
         addrinfo*       addrs{nullptr};
         int             m_socket;

@@ -15,7 +15,7 @@ namespace socketlab::network {
         using SocketException::SocketException;
     };
 
-    class Server
+    class Server : public SocketBase
     {
     public:
         Server(int port, int connections,
@@ -30,12 +30,8 @@ namespace socketlab::network {
         void accept_connections();
         void send_bytes(const std::string& data) const;
 
-        void       set_blocking_type(const TypeSocket& t) { socketType = t; }
-        TypeSocket get_blocking_type() const              { return socketType; }
-        void       set_ip_version(IpVersion v)            { ipVersion = v; }
-        IpVersion  get_ip_version() const                 { return ipVersion; }
-        void       set_port(int p)                        { port = p; }
-        int        get_port() const                       { return port; }
+        void set_port(int p)   { port = p; }
+        int  get_port() const  { return port; }
 
     protected:
         void bind_socket();
@@ -47,8 +43,6 @@ namespace socketlab::network {
         int             connections;
         int             m_socket;
         int             client_socket;
-        TypeSocket      socketType;
-        IpVersion       ipVersion;
         sockaddr_storage socketAddress{};
     };
 

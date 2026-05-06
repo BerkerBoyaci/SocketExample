@@ -6,10 +6,9 @@
 namespace socketlab::network {
 
     Server::Server(int port, int connections, TypeSocket socketType, IpVersion ipVersion)
-        : port{port}, 
+        : SocketBase{socketType, ipVersion},
+          port{port},
           connections{connections},
-          socketType{socketType},
-          ipVersion{ipVersion},
           m_socket{-1},
           client_socket{-1}
     {

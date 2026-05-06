@@ -6,7 +6,8 @@ namespace socketlab::network
  {
 
     Client::Client(const std::string& host, const std::string& port, TypeSocket socketType, IpVersion ipVersion)
-        : host{host}, port{port}, socketType{socketType}, ipVersion{ipVersion}, m_socket{-1}
+        : SocketBase{socketType, ipVersion},
+          host{host}, port{port}, m_socket{-1}
     {
         m_socket = socket(to_af(ipVersion), SOCK_STREAM, IPPROTO_TCP);
         if (m_socket == -1)
@@ -57,9 +58,17 @@ namespace socketlab::network
             throw ClientException{"Could not connect to server."};
     }
 
-    void Client::send_line(const std::string& data) const 
+    void Client::send_raw(std::span<const std::byte> data) const
     {
-        send(m_socket, data.c_str(), data.length(), 0);
+        const std::byte* ptr = data.data();
+        std::size_t remaining = data.size();
+        while (remaining > 0)
+        {
+            ssize_t sent = ::send(m_socket, ptr, remaining, 0);
+            if (sent <= 0) throw ClientException{"send() failed."};
+            ptr       += sent;
+            remaining -= static_cast<std::size_t>(sent);
+        }
     }
 
     void Client::receive_until() const
