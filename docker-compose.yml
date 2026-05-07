@@ -3,6 +3,8 @@ services:
     build:
       context: .
       target: server
+      args:
+        EXAMPLE: ${EXAMPLE:-01_hello_server}
     container_name: socketlab-server
     ports:
       - "8080:8080"
@@ -13,11 +15,15 @@ services:
     build:
       context: .
       target: client
+      args:
+        EXAMPLE: ${EXAMPLE:-01_hello_server}
     container_name: socketlab-client
     networks:
       - socketlab-net
     depends_on:
       - server
+    stdin_open: true
+    tty: true
     # Pass a different host via: docker compose run client ./client <host>
     command: ["./client", "server"]
 

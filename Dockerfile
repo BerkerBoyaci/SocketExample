@@ -1,12 +1,14 @@
 # ── Build stage ──────────────────────────────────────────────────────────────
 FROM gcc:13-bookworm AS builder
 
+ARG EXAMPLE=01_hello_server
+
 WORKDIR /app
 COPY src/      ./src/
 COPY include/  ./include/
 COPY example/  ./example/
 COPY Makefile .
-RUN make all
+RUN make all EXAMPLE=${EXAMPLE}
 
 # ── Server image ──────────────────────────────────────────────────────────────
 FROM debian:bookworm-slim AS server

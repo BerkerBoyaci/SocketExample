@@ -87,20 +87,29 @@ namespace socketlab::network
 
     void Client::receive_echo() 
     {
-        // Interactive send/receive loop
+        // Interactive send/receive loop.
+        // Exit conditions: empty line, "/exit", "/quit", or EOF (Ctrl+D / Ctrl+Z).
         std::string userInput;
-        do 
+        for (;;)
         {
             std::cout << " > ";
-            std::getline(std::cin, userInput);
-            if (!userInput.empty()) {
-                send(m_socket, userInput.c_str(), userInput.size(), 0);
-                memset(buffer, 0, sizeof(buffer));
-                int bytesReceived = recv(m_socket, buffer, sizeof(buffer), 0);
-                if (bytesReceived > 0)
-                    std::cout << "Server> " << std::string(buffer, 0, bytesReceived) << "\n";
+            if (!std::getline(std::cin, userInput)) {
+                // EOF – Ctrl+D (Linux) / Ctrl+Z (Windows)
+                std::cout << "\n";
+                break;
             }
-        } while (!userInput.empty());
+            if (userInput.empty() ||
+                userInput == "/exit" ||
+                userInput == "/quit")
+                break;
+            send(m_socket, userInput.c_str(), userInput.size(), 0);
+            memset(buffer, 0, sizeof(buffer));
+            int bytesReceived = recv(m_socket, buffer, sizeof(buffer), 0);
+            if (bytesReceived > 0)
+                std::cout << "Server> " << std::string(buffer, 0, bytesReceived) << "\n";
+            else
+                break; // server closed the connection
+        }
     }
 
 } // namespace socketlab::network

@@ -7,6 +7,7 @@
 #include "client.hpp"
 
 // -------------------------------------------------------
+// Hello Server – client connects and receives greetings
 // Usage: ./client [host]
 //   host defaults to "server" (Docker Compose service name)
 // -------------------------------------------------------

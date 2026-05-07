@@ -1,10 +1,11 @@
 CXX      := g++
 CXXFLAGS := -std=c++20 -Wall -Wextra -pedantic -Iinclude -static-libstdc++ -static-libgcc
 BUILDDIR := build
+EXAMPLE  ?= 01_hello_server
 
 COMMON_SRCS := src/socket.cpp src/server.cpp src/client.cpp
-SERVER_SRCS := $(COMMON_SRCS) example/server_main.cpp
-CLIENT_SRCS := $(COMMON_SRCS) example/client_main.cpp
+SERVER_SRCS := $(COMMON_SRCS) example/$(EXAMPLE)/server_main.cpp
+CLIENT_SRCS := $(COMMON_SRCS) example/$(EXAMPLE)/client_main.cpp
 
 .PHONY: all server client clean
 

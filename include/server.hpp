@@ -27,8 +27,9 @@ namespace socketlab::network {
         Server  operator=(Server&&)      = delete;
         ~Server();
 
-        void accept_connections();
-        void send_bytes(const std::string& data) const;
+        void        accept_connections();
+        void        send_bytes(const std::string& data) const;
+        std::string recv_bytes() const;
 
         void set_port(int p)   { port = p; }
         int  get_port() const  { return port; }

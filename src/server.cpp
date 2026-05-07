@@ -92,4 +92,13 @@ namespace socketlab::network {
         send(client_socket, data.c_str(), data.length(), 0);
     }
 
+    std::string Server::recv_bytes() const
+    {
+        char buf[4096]{};
+        ssize_t n = recv(client_socket, buf, sizeof(buf), 0);
+        if (n <= 0)
+            return {};
+        return std::string(buf, static_cast<std::size_t>(n));
+    }
+
 } // namespace socketlab::network

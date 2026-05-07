@@ -1,117 +1,171 @@
 # SocketLab
 
-POSIX socket programlama öğrenmek için C++17 lab projesi.  
-Winsock bağımlılıkları tamamen kaldırıldı; Linux üzerinde doğrudan veya Docker ile çalışır.
+A C++20 laboratory project for exploring POSIX TCP socket programming.  
+All platform code targets Linux; there are no Winsock dependencies. The project runs either natively on Linux or inside Docker (recommended for Windows/macOS hosts).
 
 ---
 
-## Proje Yapısı
+## Repository Layout
 
 ```
 SocketLab/
+├── include/
+│   ├── common.hpp          # SocketBase, TypeSocket, IpVersion, SocketException
+│   ├── server.hpp          # Server class declaration
+│   ├── client.hpp          # Client class declaration
+│   └── socket.hpp          # Shared socket utilities
 ├── src/
-│   ├── socket.h / socket.cpp        # Temel POSIX socket sarmalayıcı (referans)
-│   ├── server.h / server.cpp        # TCP sunucu sınıfı
-│   ├── client.h / client.cpp        # TCP istemci sınıfı
-│   ├── server_main.cpp              # Sunucu giriş noktası
-│   └── client_main.cpp              # İstemci giriş noktası
+│   ├── socket.cpp
+│   ├── server.cpp
+│   └── client.cpp
+├── example/
+│   ├── 01_hello_server/    # Server pushes greeting messages; client receives them
+│   │   ├── server_main.cpp
+│   │   └── client_main.cpp
+│   └── 02_echo_server_blocking/   # Server echoes every message back to the client
+│       ├── server_main.cpp
+│       └── client_main.cpp
 ├── Makefile
 ├── Dockerfile
 ├── docker-compose.yml
+├── run.bat                 # Windows CMD launcher
+├── run.ps1                 # PowerShell launcher
 └── README.md
 ```
 
 ---
 
-## Yerel Derleme (Linux)
+## Build System
 
-```bash
-make          # server ve client ikili dosyalarını build/ klasörüne üretir
-make server   # sadece sunucu
-make client   # sadece istemci
-make clean    # build/ klasörünü siler
+The Makefile exposes an `EXAMPLE` variable that selects which subdirectory under `example/` is compiled.
+
+```
+EXAMPLE   default: 01_hello_server
 ```
 
-Çalıştırma (iki ayrı terminal):
+Compilation produces two binaries under `build/`:
+
+| Target | Binary |
+|--------|--------|
+| `make server` | `build/server` |
+| `make client` | `build/client` |
+| `make` / `make all` | both |
+| `make clean` | removes `build/` |
+
+Build is performed inside the Docker `builder` stage (gcc 13, C++20). Native builds on Linux require GCC ≥ 13 with C++20 support.
 
 ```bash
-./build/server
-./build/client localhost   # varsayılan host: "server" (Docker için)
-```
-
----
-
-## Docker ile Çalıştırma
-
-### İlk kurulum (imajları oluştur)
-
-```bash
-docker compose build
-```
-
-### Sunucu + istemciyi aynı anda başlat
-
-```bash
-docker compose up
-```
-
-- `socketlab-server` → port 8080 üzerinde dinler  
-- `socketlab-client` → Docker ağı üzerinden `server:8080`'e bağlanır
-
-### Sadece sunucuyu arka planda başlat, istemciyi interaktif çalıştır
-
-```bash
-docker compose up -d server
-docker compose run --rm client ./client server
-```
-
-### Farklı bir hedefe bağlan
-
-```bash
-docker compose run --rm client ./client <host>
-```
-
-### Durdurma ve temizleme
-
-```bash
-docker compose down
-docker compose down --rmi all   # imajları da sil
+# Linux – native
+make EXAMPLE=02_echo_server_blocking
+./build/server &
+./build/client localhost
 ```
 
 ---
 
-## Sınıflar
+## Running with Docker
 
-### `Server`
+### Helper scripts (Windows)
 
-| Metot | Açıklama |
-|---|---|
-| `Server(port, connections, type)` | Soket oluştur, SO_REUSEADDR ayarla, bind et |
-| `accept_connections()` | listen + tek istemci kabul et |
-| `send_bytes(data)` | Kabul edilen istemciye veri gönder |
-| `set_blocking_type(type)` | Blocking / Non-blocking modu değiştir |
+```cmd
+rem CMD
+run.bat                              # 01_hello_server (default)
+run.bat 02_echo_server_blocking      # Echo Server – interactive session
+run.bat 02_echo_server_blocking down # Stop and remove containers
+```
 
-### `Client`
+```powershell
+# PowerShell
+.\run.ps1                              # 01_hello_server (default)
+.\run.ps1 02_echo_server_blocking      # Echo Server – interactive session
+.\run.ps1 02_echo_server_blocking down # Stop and remove containers
+```
 
-| Metot | Açıklama |
-|---|---|
-| `Client(host, port, type)` | Soket oluştur, adres bilgisini hazırla |
-| `connect_socket()` | `getaddrinfo` + `connect` |
-| `send_line(data)` | Sunucuya veri gönder |
-| `receive_until()` | Bağlantı kapanana kadar veri al |
-| `receive_echo()` | İnteraktif gönder/al döngüsü |
+### Manual Docker commands
 
-### Blocking / Non-blocking
+```bash
+# Non-interactive examples (e.g. 01_hello_server)
+EXAMPLE=01_hello_server docker compose up --build      # Linux/macOS
+set EXAMPLE=01_hello_server && docker compose up --build  # CMD
 
-Her iki sınıfta da `TypeSocket::BlockingSocket` ve `TypeSocket::NonBlockingSocket`  
-`fcntl(fd, F_SETFL, O_NONBLOCK)` ile ayarlanır.
+# Interactive examples (e.g. 02_echo_server_blocking)
+# The client requires a live stdin, so it must be launched with `docker compose run`
+# instead of `docker compose up`.
+docker compose up --build -d server
+docker compose run --rm client
+docker compose stop server
+```
+
+`docker compose up` multiplexes stdout from all services and cannot attach stdin to a single container. `docker compose run` allocates a dedicated TTY for the container, enabling interactive input.
+
+### Teardown
+
+```bash
+docker compose down            # stop and remove containers
+docker compose down --rmi all  # also remove built images
+```
 
 ---
 
-## Öğrenme Yol Haritası
+## Class Reference
 
-1. `src/socket.h` – temel POSIX socket API'ını incele  
-2. `Server` + `server_main.cpp` – `bind` → `listen` → `accept` akışını takip et  
-3. `Client` + `client_main.cpp` – `getaddrinfo` → `connect` akışını takip et  
-4. `blocking_mode()` – `fcntl` ile non-blocking soket nasıl ayarlanır?  
-5. `docker-compose.yml` – iki container'ın aynı ağda nasıl haberleştiğini gözlemle
+### `SocketBase` (`include/common.hpp`)
+
+Base class for both `Server` and `Client`. Stores `TypeSocket` and `IpVersion` state.
+
+| Member | Description |
+|--------|-------------|
+| `TypeSocket::BlockingSocket` | `fcntl` clears `O_NONBLOCK` on the socket fd |
+| `TypeSocket::NonBlockingSocket` | `fcntl` sets `O_NONBLOCK` on the socket fd |
+| `IpVersion::IPv4` / `IpVersion::IPv6` | Controls `AF_INET` vs `AF_INET6` in all `socket()` calls |
+
+### `Server` (`include/server.hpp`)
+
+Wraps the server-side lifecycle: `socket` → `setsockopt(SO_REUSEADDR)` → `bind` → `listen` → `accept`.  
+Supports a single concurrent client connection.
+
+| Method | Description |
+|--------|-------------|
+| `Server(port, backlog, type, ip)` | Creates and binds the listening socket |
+| `accept_connections()` | Blocks until one client connects; applies blocking mode to the accepted fd |
+| `send_bytes(const std::string&)` | `send()` to the accepted client socket |
+| `recv_bytes()` | `recv()` from the accepted client socket; returns empty string on EOF |
+
+### `Client` (`include/client.hpp`)
+
+Wraps the client-side lifecycle: `socket` → `getaddrinfo` → `connect`.
+
+| Method | Description |
+|--------|-------------|
+| `Client(host, port, type, ip)` | Creates the socket and resolves the remote address via `getaddrinfo` |
+| `connect_socket()` | Iterates `addrinfo` results and calls `connect()`; throws `ClientException` on failure |
+| `send_raw(std::span<const std::byte>)` | Performs a complete `send()` loop until all bytes are written |
+| `receive_until()` | `recv()` loop until the remote closes the connection |
+| `receive_echo()` | Interactive send/receive loop driven by `std::getline`; exits on empty input |
+
+---
+
+## Examples
+
+### 01 – Hello Server
+
+The server sends a `"Hello from SocketLab server!\r\n"` message once per second indefinitely. The client connects, optionally sends a binary payload, then enters `receive_until()`.
+
+Demonstrates: `accept` → `send` loop; raw byte transmission from the client side.
+
+### 02 – Echo Server (Blocking)
+
+The server reads each message from the client via `recv_bytes()` and immediately writes it back with `send_bytes()`. The client uses `receive_echo()` for a line-oriented interactive session.
+
+Demonstrates: full-duplex exchange over a single blocking TCP connection; clean EOF detection.
+
+---
+
+## Learning Path
+
+1. `include/common.hpp` — examine `SocketBase`, `TypeSocket`, and the `SocketException` hierarchy  
+2. `src/server.cpp` — trace the `bind` → `listen` → `accept` → `blocking_mode` call sequence  
+3. `src/client.cpp` — trace `getaddrinfo` → `connect` → `send_raw` / `receive_until`  
+4. `example/01_hello_server` — observe unidirectional streaming over TCP  
+5. `example/02_echo_server_blocking` — observe full-duplex exchange and EOF handling  
+6. `docker-compose.yml` — inspect how two containers communicate over a user-defined bridge network

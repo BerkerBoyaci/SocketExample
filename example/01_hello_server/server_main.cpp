@@ -4,7 +4,7 @@
 #include "server.hpp"
 
 // -------------------------------------------------------
-// Examples – uncomment the one you want to run in main()
+// Hello Server – server sends a greeting every second
 // -------------------------------------------------------
 
 void blocking_example();
