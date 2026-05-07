@@ -31,6 +31,14 @@ namespace socketlab::network {
         void        send_bytes(const std::string& data) const;
         std::string recv_bytes() const;
 
+        // Low-level primitives for multi-client examples (fork, select, epoll, …)
+        int  get_fd()  const { return m_socket; }
+        int  accept_one();
+        int  accept_one(sockaddr_storage& addr, socklen_t& len);
+        static void        send_to(int fd, const std::string& data);
+        static std::string recv_from(int fd);
+        static void        set_fd_blocking(int fd, TypeSocket type);
+
         void set_port(int p)   { port = p; }
         int  get_port() const  { return port; }
 

@@ -36,6 +36,9 @@ namespace socketlab::network
         void        receive_until() const;
         void        receive_echo();
 
+        // Low-level primitive for multiplexed I/O (e.g., select with stdin + socket)
+        int         get_fd() const { return m_socket; }
+
         void        set_port(const std::string& p)         { port = p; }
         std::string get_port() const                       { return port; }
         void        set_host(const std::string& h)         { host = h; }

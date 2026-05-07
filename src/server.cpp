@@ -89,16 +89,64 @@ namespace socketlab::network {
 
     void Server::send_bytes(const std::string& data) const
     {
-        send(client_socket, data.c_str(), data.length(), 0);
+        send_to(client_socket, data);
     }
 
     std::string Server::recv_bytes() const
     {
+        return recv_from(client_socket);
+    }
+
+    // --- Low-level primitives -----------------------------------------------
+
+    int Server::accept_one()
+    {
+        int fd = accept(m_socket, nullptr, nullptr);
+        if (fd == -1)
+            throw ServerException{"Error: accept() failed."};
+        return fd;
+    }
+
+    int Server::accept_one(sockaddr_storage& addr, socklen_t& len)
+    {
+        len = sizeof(addr);
+        int fd = accept(m_socket, reinterpret_cast<sockaddr*>(&addr), &len);
+        if (fd == -1)
+            throw ServerException{"Error: accept() failed."};
+        return fd;
+    }
+
+    void Server::send_to(int fd, const std::string& data)
+    {
+        const char*  ptr       = data.c_str();
+        std::size_t  remaining = data.size();
+        while (remaining > 0) {
+            ssize_t sent = ::send(fd, ptr, remaining, 0);
+            if (sent <= 0)
+                throw ServerException{"Error: send() failed."};
+            ptr       += sent;
+            remaining -= static_cast<std::size_t>(sent);
+        }
+    }
+
+    std::string Server::recv_from(int fd)
+    {
         char buf[4096]{};
-        ssize_t n = recv(client_socket, buf, sizeof(buf), 0);
+        ssize_t n = recv(fd, buf, sizeof(buf), 0);
         if (n <= 0)
             return {};
         return std::string(buf, static_cast<std::size_t>(n));
+    }
+
+    void Server::set_fd_blocking(int fd, TypeSocket type)
+    {
+        int flags = fcntl(fd, F_GETFL, 0);
+        if (flags == -1)
+            throw ServerException{"Error: fcntl(F_GETFL) failed."};
+        if (type == TypeSocket::NonBlockingSocket)
+            fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+        else
+            fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
     }
 
 } // namespace socketlab::network
