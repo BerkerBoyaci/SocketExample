@@ -33,6 +33,7 @@ namespace socketlab::network {
 
         // Low-level primitives for multi-client examples (fork, select, epoll, …)
         int  get_fd()  const { return m_socket; }
+        void start_listening() const { listen_socket(); }
         int  accept_one();
         int  accept_one(sockaddr_storage& addr, socklen_t& len);
         static void        send_to(int fd, const std::string& data);

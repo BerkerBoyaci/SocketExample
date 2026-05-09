@@ -20,18 +20,24 @@ IF /I "%ACTION%"=="down" (
 )
 
 IF /I "%ACTION%"=="up" (
-    IF "%EXAMPLE%"=="02_echo_server_blocking" (
-        echo Starting server in background...
-        docker compose up --build -d server
-        echo Attaching interactive client ^(type messages, empty line to quit^)...
-        docker compose run --build --rm client
-        echo Stopping server...
-        docker compose stop server
-    ) ELSE (
-        docker compose up --build
-    )
+    IF "%EXAMPLE%"=="02_echo_server_blocking" GOTO :interactive
+    IF "%EXAMPLE%"=="03_echo_server_fork"      GOTO :interactive
+    docker compose up --build
     GOTO :EOF
 )
+
+:interactive
+echo Building images...
+docker compose build
+echo Starting server in background...
+docker compose up -d server
+echo Waiting for server DNS to register...
+timeout /t 2 /nobreak >nul
+echo Attaching interactive client ^(type messages, empty line to quit^)...
+docker compose run --no-deps --rm client
+echo Tearing down...
+docker compose down
+GOTO :EOF
 
 echo Unknown action "%ACTION%". Use "up" or "down".
 exit /b 1

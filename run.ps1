@@ -15,17 +15,21 @@ param(
 $env:EXAMPLE = $Example
 
 # Examples that need interactive stdin on the client side
-$interactiveExamples = @("02_echo_server_blocking")
+$interactiveExamples = @("02_echo_server_blocking", "03_echo_server_fork")
 
 switch ($Action) {
     "up" {
         if ($interactiveExamples -contains $Example) {
+            Write-Host "Building images..."
+            docker compose build
             Write-Host "Starting server in background..."
-            docker compose up --build -d server
+            docker compose up -d server
+            Write-Host "Waiting for server DNS to register..."
+            Start-Sleep -Seconds 2
             Write-Host "Attaching interactive client (type messages, empty line to quit)..."
-            docker compose run --build --rm client
-            Write-Host "Stopping server..."
-            docker compose stop server
+            docker compose run --no-deps --rm client
+            Write-Host "Tearing down..."
+            docker compose down
         } else {
             docker compose up --build
         }

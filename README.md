@@ -22,7 +22,10 @@ SocketLab/
 │   ├── 01_hello_server/    # Server pushes greeting messages; client receives them
 │   │   ├── server_main.cpp
 │   │   └── client_main.cpp
-│   └── 02_echo_server_blocking/   # Server echoes every message back to the client
+│   ├── 02_echo_server_blocking/   # Server echoes every message back to the client
+│   │   ├── server_main.cpp
+│   │   └── client_main.cpp
+│   └── 03_echo_server_fork/       # Multi-client echo server; a new process per client
 │       ├── server_main.cpp
 │       └── client_main.cpp
 ├── Makefile
@@ -72,6 +75,8 @@ rem CMD
 run.bat                              # 01_hello_server (default)
 run.bat 02_echo_server_blocking      # Echo Server – interactive session
 run.bat 02_echo_server_blocking down # Stop and remove containers
+run.bat 03_echo_server_fork          # Multi-Client Echo Server – interactive session
+run.bat 03_echo_server_fork down     # Stop and remove containers
 ```
 
 ```powershell
@@ -79,6 +84,8 @@ run.bat 02_echo_server_blocking down # Stop and remove containers
 .\run.ps1                              # 01_hello_server (default)
 .\run.ps1 02_echo_server_blocking      # Echo Server – interactive session
 .\run.ps1 02_echo_server_blocking down # Stop and remove containers
+.\run.ps1 03_echo_server_fork          # Multi-Client Echo Server – interactive session
+.\run.ps1 03_echo_server_fork down     # Stop and remove containers
 ```
 
 ### Manual Docker commands
@@ -159,6 +166,26 @@ The server reads each message from the client via `recv_bytes()` and immediately
 
 Demonstrates: full-duplex exchange over a single blocking TCP connection; clean EOF detection.
 
+### 03 – Multi-Client Echo Server (fork)
+
+For every accepted connection the server calls `fork()`. The child process owns the client fd and runs the echo loop independently; the parent immediately loops back to `accept()`. A `SIGCHLD` handler calls `waitpid(WNOHANG)` to reap finished children and prevent zombie processes.
+
+Demonstrates: `fork()` for concurrency; zombie processes and how `SIGCHLD` + `waitpid()` eliminates them; fd inheritance and cleanup across parent/child.
+
+```bash
+# Linux – native (two separate shells)
+make EXAMPLE=03_echo_server_fork
+./build/server &
+./build/client localhost   # shell 1
+./build/client localhost   # shell 2 – second client simultaneously
+```
+
+```powershell
+# PowerShell – Docker (server stays up; open a new terminal per client)
+.\run.ps1 03_echo_server_fork          # launches server + first client
+docker compose run --rm client         # second client in another terminal
+```
+
 ---
 
 ## Learning Path
@@ -168,4 +195,5 @@ Demonstrates: full-duplex exchange over a single blocking TCP connection; clean 
 3. `src/client.cpp` — trace `getaddrinfo` → `connect` → `send_raw` / `receive_until`  
 4. `example/01_hello_server` — observe unidirectional streaming over TCP  
 5. `example/02_echo_server_blocking` — observe full-duplex exchange and EOF handling  
-6. `docker-compose.yml` — inspect how two containers communicate over a user-defined bridge network
+6. `example/03_echo_server_fork` — observe `fork()`-based concurrency and zombie process cleanup  
+7. `docker-compose.yml` — inspect how two containers communicate over a user-defined bridge network
